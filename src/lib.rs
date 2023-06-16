@@ -1,3 +1,6 @@
+mod utils;
+use utils::constants::GOOGLE_DNS;
+
 pub struct EmailVerifier {
     dns_server: String
 }
@@ -9,6 +12,12 @@ pub struct VerificationResult {
 struct MxResult {
     accepts_mail: bool,
     mx_records: Vec<String>
+}
+
+impl Default for EmailVerifier {
+    fn default() -> Self {
+        Self {dns_server:String::from(GOOGLE_DNS)}
+    }
 }
 
 impl EmailVerifier {
@@ -30,6 +39,12 @@ mod tests {
     #[test]
     fn dns_is_in_place() {
         let result = EmailVerifier::new("8.8.8.8:53");
+        assert_eq!(result.dns_server, String::from("8.8.8.8:53"));
+    }
+
+    #[test]
+    fn default_usable() {
+        let result =  EmailVerifier::default();
         assert_eq!(result.dns_server, String::from("8.8.8.8:53"));
     }
 }
