@@ -30,7 +30,11 @@ impl EmailVerifier {
         self.verify(String::from(email))
     }
     pub fn verify(&self, email:String)-> VerificationResult{
-        VerificationResult{mx:MxResult{accepts_mail:false, mx_records:get_mx_records(String::from("gmail.com"),&self.dns_server).unwrap()}}
+        let mx_validation_result:Vec<String>= match get_mx_records(String::from("gmail.com"), &self.dns_server ){
+            Ok(items) => items,
+            Err(error) => panic!("{}",error)
+        };
+        VerificationResult{mx:MxResult{accepts_mail : mx_validation_result.len() > 0, mx_records : mx_validation_result}}
     }
 }
 
@@ -40,10 +44,9 @@ mod tests {
 
     #[test]
     fn dns_is_in_place() {
-        let result = EmailVerifier::new("8.8.8.8:53");
-        print!("checking test!!!");
-        print!("{}",result.verify_static("23@ss.ss").mx.mx_records[0]);
-        assert_eq!(result.dns_server, String::from("8.8.8.8:53"));
+        let verifier = EmailVerifier::new("8.8.8.8:53");
+        let result = verifier.verify_static("bill.gates@microsoft.com");
+        assert_eq!(result.mx.mx_records.len() > 0, true);
     }
 
     #[test]
