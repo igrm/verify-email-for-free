@@ -2,18 +2,28 @@ mod utils;
 mod validators;
 use utils::constants::GOOGLE_DNS;
 use validators::mx::get_mx_records;
+use validators::smtp::can_connect_remotely;
 
 pub struct EmailVerifier {
     dns_server: String
 }
 
 pub struct VerificationResult {
-    pub mx: MxResult
+    pub mx: MxResult,
+    pub smtp: SmtpResult
 }
 
 pub struct MxResult {
-    pub accepts_mail: bool,
+    pub accepts_email: bool,
     pub mx_records: Vec<String>
+}
+
+pub struct SmtpResult {
+    pub accepts_smtp_connection: bool,
+    pub inbox_is_full : bool,
+    pub disabled_address: bool,
+    pub email_deliverable : bool,
+    pub catch_all_address : bool,
 }
 
 impl Default for EmailVerifier {
@@ -34,7 +44,16 @@ impl EmailVerifier {
             Ok(items) => items,
             Err(error) => panic!("{}",error)
         };
-        VerificationResult{mx:MxResult{accepts_mail : mx_validation_result.len() > 0, mx_records : mx_validation_result}}
+
+        let mut accepts_smtp_connection:bool = true;
+        for host in mx_validation_result.iter() {
+            print!("-----------checking host:{}\n", host.trim());
+            accepts_smtp_connection &= can_connect_remotely(host).unwrap();
+        }
+        VerificationResult{
+            mx:MxResult{accepts_email : mx_validation_result.len() > 0, mx_records : mx_validation_result},
+            smtp:SmtpResult { accepts_smtp_connection: accepts_smtp_connection, inbox_is_full: false, disabled_address: false, email_deliverable: false, catch_all_address: false }
+        }
     }
 }
 
