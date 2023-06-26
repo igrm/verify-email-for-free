@@ -13,7 +13,8 @@ apt-get install -y \
   pkg-config \
   iputils-ping \
   dnsutils \
-  nmap  
+  nmap \
+  telnet
 ## Install rustup and common components
 curl https://sh.rustup.rs -sSf | sh -s -- -y 
 rustup install nightly
