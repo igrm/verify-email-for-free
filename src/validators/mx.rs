@@ -29,7 +29,7 @@ pub fn get_mx_records(hostname:String, dns_server:&String) -> Result<Vec<String>
         temp = temp.replace("MX ", "").trim().to_string();
         temp = temp.trim_end_matches(".").to_string();
         temp = temp.replace(temp.substring(0, temp.find(" ").unwrap_or(0)), "").to_string();
-        result.push(temp);
+        result.push(temp.trim().to_string());
     }
     Ok(result)
 

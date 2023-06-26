@@ -2,7 +2,8 @@ mod utils;
 mod validators;
 use utils::constants::GOOGLE_DNS;
 use validators::mx::get_mx_records;
-use validators::smtp::can_connect_remotely;
+use validators::smtp::*;
+use std::collections::HashMap;
 
 pub struct EmailVerifier {
     dns_server: String
@@ -19,11 +20,18 @@ pub struct MxResult {
 }
 
 pub struct SmtpResult {
-    pub accepts_smtp_connection: bool,
+    pub accepts_email: HashMap<String, SmtpResultConnection>,
     pub inbox_is_full : bool,
     pub disabled_address: bool,
     pub email_deliverable : bool,
     pub catch_all_address : bool,
+}
+
+pub struct SmtpResultConnection {
+    pub tls_wrapped: bool,
+    pub upgrade_via_starttls : bool,
+    pub plain_text : bool,
+    pub can_connect: bool
 }
 
 impl Default for EmailVerifier {
@@ -45,14 +53,44 @@ impl EmailVerifier {
             Err(error) => panic!("{}",error)
         };
 
-        let mut accepts_smtp_connection:bool = true;
+        let mut connection_result = HashMap::<String, SmtpResultConnection>::new();
+        let mut tls_wrapped:bool = true;
+        let mut upgrade_via_starttls:bool = true;
+        let mut plain_text:bool = true;
+
         for host in mx_validation_result.iter() {
-            print!("-----------checking host:{}\n", host.trim());
-            accepts_smtp_connection &= can_connect_remotely(host).unwrap();
+            print!("      checking host:{}\n", host);
+            tls_wrapped &= match check_tls_wrapped(host) 
+            {
+                Ok(value) => value,
+                Err(_) => false
+            };
+            upgrade_via_starttls &= match check_upgrade_via_starttls(host) 
+            {
+                Ok(value) => value,
+                Err(_) => false
+            };
+            plain_text &= match check_plaintext(host)
+            {
+                Ok(value) => value,
+                Err(_) => false
+            };
+            connection_result.insert(host.to_string(), SmtpResultConnection { 
+                tls_wrapped: tls_wrapped, 
+                upgrade_via_starttls: upgrade_via_starttls,
+                plain_text: plain_text,
+                can_connect: tls_wrapped||upgrade_via_starttls||plain_text
+            });
         }
         VerificationResult{
             mx:MxResult{accepts_email : mx_validation_result.len() > 0, mx_records : mx_validation_result},
-            smtp:SmtpResult { accepts_smtp_connection: accepts_smtp_connection, inbox_is_full: false, disabled_address: false, email_deliverable: false, catch_all_address: false }
+            smtp:SmtpResult { 
+                accepts_email: connection_result,
+                inbox_is_full: false, 
+                disabled_address: false, 
+                email_deliverable: false, 
+                catch_all_address: false 
+            }
         }
     }
 }
@@ -65,7 +103,10 @@ mod tests {
     fn dns_is_in_place() {
         let verifier = EmailVerifier::new("8.8.8.8:53");
         let result = verifier.verify_static("bill.gates@microsoft.com");
-        assert_eq!(result.mx.mx_records.len() > 0, true);
+        for (key, val) in result.smtp.accepts_email.iter()        {
+            print!("{}:{} {} {}\n", key,val.tls_wrapped, val.upgrade_via_starttls, val.plain_text);
+            assert_eq!(val.can_connect, true);
+        }
     }
 
     #[test]
