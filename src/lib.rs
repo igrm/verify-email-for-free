@@ -39,7 +39,7 @@ impl EmailVerifier {
     pub fn verify_static(&self, email:&'static str) -> VerificationResult{
         self.verify(String::from(email))
     }
-    pub fn verify(&self, email:String)-> VerificationResult{
+    pub fn verify(&self, _email:String)-> VerificationResult{
         let mx_validation_result:Vec<String>= match get_mx_records(String::from("gmail.com"), &self.dns_server ){
             Ok(items) => items,
             Err(error) => panic!("{}",error)

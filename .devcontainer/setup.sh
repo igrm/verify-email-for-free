@@ -9,7 +9,10 @@ apt-get install -y \
   zsh \
   vim \
   build-essential \
-  openssl
+  openssl \
+  iputils-ping \
+  inetutils-traceroute \
+  dnsutils \
 apt-get install -y pkg-config
 apt-get install -y libssl-dev
 ## Install rustup and common components
