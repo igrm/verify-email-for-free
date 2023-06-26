@@ -10,7 +10,8 @@ apt-get install -y \
   vim \
   build-essential \
   openssl
-
+apt-get install pkg-config
+apt-get install libssl-dev
 ## Install rustup and common components
 curl https://sh.rustup.rs -sSf | sh -s -- -y 
 rustup install nightly
