@@ -13,6 +13,7 @@ apt-get install -y \
   iputils-ping \
   inetutils-traceroute \
   dnsutils \
+  netcat \
 apt-get install -y pkg-config
 apt-get install -y libssl-dev
 ## Install rustup and common components
