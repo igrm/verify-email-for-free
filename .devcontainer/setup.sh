@@ -11,9 +11,8 @@ apt-get install -y \
   build-essential \
   openssl \
   iputils-ping \
-  inetutils-traceroute \
   dnsutils \
-  netcat \
+  nc \
 apt-get install -y pkg-config
 apt-get install -y libssl-dev
 ## Install rustup and common components
