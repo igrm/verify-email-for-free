@@ -9,12 +9,11 @@ apt-get install -y \
   zsh \
   vim \
   build-essential \
-  openssl \
+  libssl-dev \
+  pkg-config \
   iputils-ping \
   dnsutils \
-  nc \
-apt-get install -y pkg-config
-apt-get install -y libssl-dev
+  nmap  
 ## Install rustup and common components
 curl https://sh.rustup.rs -sSf | sh -s -- -y 
 rustup install nightly
