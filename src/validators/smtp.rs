@@ -31,10 +31,10 @@ pub fn do_smtp (host:String) -> std::io::Result<(bool, bool, bool, bool, bool, b
         if let Ok(mut stream) = TcpStream::connect_timeout(socket, Duration::from_secs(TIMEOUT)) {
             result.0 = true;
             print!("     connected {}\n", socket.to_string());
-            let mut string_buffer = String::new();
-            stream.read_to_string(&mut string_buffer)?;
-            print!("    buffer read: {}\n", string_buffer);
-            result.1 = string_buffer.contains("220");
+            let mut buffer=[0; 1000000];
+            stream.read(&mut buffer)?;
+            print!("    buffer read: {}\n", String::from_utf8(buffer.to_vec()).unwrap());
+            result.1 = String::from_utf8(buffer.to_vec()).unwrap().contains("220");
             break;
         }
     }
